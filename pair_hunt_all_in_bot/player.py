@@ -24,7 +24,7 @@ class Player(Bot):
         Nothing.
         ''' 
         self.board_allocations = [[], [], []] #keep track of our allocations at round start
-        self.strong_hole = False
+        self.strong_hole = False #keep track of whether or not we have a strong hole card
 
     def allocate_cards(self, my_cards):
         ranks = {}
@@ -33,37 +33,38 @@ class Player(Bot):
             card_rank = card[0] #2 - 9, T, J, Q, K, A
             card_suit = card[1] # d, h, s, c
 
-            if card_rank in ranks:
+            if card_rank in ranks: #if we've seen this rank before, add the card to our list
                 ranks[card_rank].append(card)
-            else:
+
+            else: #make a new list if we've never seen this one before
                 ranks[card_rank] = [card]
 
         
-        pairs = []
-        singles = []
+        pairs = [] #keep track of all of the pairs we identified
+        singles = [] #all other cards
 
         for rank in ranks:
             cards = ranks[rank]
 
-            if len(cards) == 1:
+            if len(cards) == 1: #single card, can't be in a pair
                 singles.append(cards[0])
             
-            elif len(cards) == 2 or len(cards) == 4:
+            elif len(cards) == 2 or len(cards) == 4: #a single pair or two pairs can be made here, add them all
                 pairs += cards
             
-            else: #len(cards) == 3
+            else: #len(cards) == 3  A single pair plus an extra can be made here
                 pairs.append(cards[0])
                 pairs.append(cards[1])
                 singles.append(cards[2])
 
-        if len(pairs) > 0:
+        if len(pairs) > 0: #we found a pair! update our state to say that this is a strong round
             self.strong_hole = True
         
-        allocation = pairs + singles
+        allocation = pairs + singles 
 
-        for i in range(NUM_BOARDS):
+        for i in range(NUM_BOARDS): #subsequent pairs of cards should be pocket pairs if we found any
             cards = [allocation[2*i], allocation[2*i + 1]]
-            self.board_allocations[i] = cards
+            self.board_allocations[i] = cards #record our allocations
         
         pass
 
@@ -112,7 +113,7 @@ class Player(Bot):
             my_cards = previous_board_state.hands[active]  # your cards
             opp_cards = previous_board_state.hands[1-active]  # opponent's cards or [] if not revealed
         
-        self.board_allocations = [[], [], []]
+        self.board_allocations = [[], [], []] #reset our variables at the end of every round!
         self.strong_hole = False
 
 
@@ -145,18 +146,18 @@ class Player(Bot):
         my_actions = [None] * NUM_BOARDS
         for i in range(NUM_BOARDS):
             if AssignAction in legal_actions[i]:
-                cards = self.board_allocations[i]
-                my_actions[i] = AssignAction(cards)
+                cards = self.board_allocations[i] #allocate our cards that we made earlier
+                my_actions[i] = AssignAction(cards) #add to our actions
 
-            elif (RaiseAction in legal_actions[i] and self.strong_hole):
-                min_raise, max_raise = round_state.board_states[i].raise_bounds(active, stacks)
-                max_cost = max_raise - my_pips[i]
+            elif (RaiseAction in legal_actions[i] and self.strong_hole): #only consider this if we're strong
+                min_raise, max_raise = round_state.board_states[i].raise_bounds(active, stacks) #calulate the highest and lowest we can raise to
+                max_cost = max_raise - my_pips[i] #the cost to give the max raise
 
-                if max_cost <= my_stack - net_cost:
-                    my_actions[i] = RaiseAction(max_raise)
+                if max_cost <= my_stack - net_cost: #name sure the max_cost is something we can afford! Must have at least this much left after our other costs
+                    my_actions[i] = RaiseAction(max_raise) #GO ALL IN!!!
                     net_cost += max_cost
                 
-                elif CallAction in legal_actions[i]:
+                elif CallAction in legal_actions[i]: # check-call
                     my_actions[i] = CallAction()
                 else:
                     my_actions[i] = CheckAction()
