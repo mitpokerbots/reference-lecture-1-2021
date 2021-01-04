@@ -159,13 +159,17 @@ class Player(Bot):
                 
                 elif CallAction in legal_actions[i]: # check-call
                     my_actions[i] = CallAction()
+                    net_cost += continue_cost
+
                 else:
                     my_actions[i] = CheckAction()
 
             elif CheckAction in legal_actions[i]:  # check-call
                 my_actions[i] = CheckAction()
+
             else:
                 my_actions[i] = CallAction()
+                net_cost += continue_cost
         return my_actions
 
 
