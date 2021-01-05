@@ -153,7 +153,7 @@ class Player(Bot):
                 min_raise, max_raise = round_state.board_states[i].raise_bounds(active, round_state.stacks) #calulate the highest and lowest we can raise to
                 max_cost = max_raise - my_pips[i] #the cost to give the max raise
 
-                if max_cost <= my_stack - net_cost: #name sure the max_cost is something we can afford! Must have at least this much left after our other costs
+                if max_cost <= my_stack - net_cost: #make sure the max_cost is something we can afford! Must have at least this much left after our other costs
                     my_actions[i] = RaiseAction(max_raise) #GO ALL IN!!!
                     net_cost += max_cost
                 
